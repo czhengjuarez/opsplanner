@@ -39,11 +39,10 @@ export function Header({ currentWeek, setCurrentWeek, onDownloadPDF, isDownloadi
   };
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-sm">
+    <header className="fixed top-0 left-0 right-0 z-10 bg-white shadow-sm print-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex-shrink-0">
-            {/* UPDATED: Title changed here */}
             <span className="text-xl font-bold">Ops Weekly Planner</span>
           </div>
           <div className="flex items-center gap-2">
