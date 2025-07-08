@@ -1,9 +1,4 @@
-{
-  "name": "designops_planner",
-  "homepage": "https://czhengjuarez.github.io/opsplanner",
-  "private": true,
-  // ... rest of the file
-}
+
 {
   "name": "designops_planner",
   "private": true,

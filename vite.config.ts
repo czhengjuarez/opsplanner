@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react"
 import { defineConfig } from "vite"
 
 export default defineConfig({
-  base: "/opsplanner/", // Add this line
+  // base: "/opsplanner/", // This line must be removed or commented out
   plugins: [react()],
   resolve: {
     alias: {
