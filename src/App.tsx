@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
-import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 // Generic structures for our list items
 interface TodoItem {
@@ -112,6 +112,31 @@ export default function App() {
     }
   };
 
+  // FULLY RESTORED PDF download logic
+  const handleDownloadPDF = () => {
+    const plannerElement = document.getElementById('planner-content');
+    if (!plannerElement) return;
+
+    setIsDownloading(true);
+
+    html2canvas(plannerElement, {
+      scale: 2,
+      useCORS: true, 
+      logging: false
+    }).then(canvas => {
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'px',
+        format: [canvas.width, canvas.height]
+      });
+      pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+      pdf.save(`weekly-ops-planner-${new Date().toISOString().split('T')[0]}.pdf`);
+    }).finally(() => {
+      setIsDownloading(false);
+    });
+  };
+
   const toggleDayCollapse = (day: string) => { setCollapsedDays(prev => ({ ...prev, [day]: !prev[day] })); };
   const handleNewTaskTextChange = (day: string, text: string) => { setNewTaskTexts(prev => ({ ...prev, [day]: text })); };
   const handleAddTask = (day: string) => {
@@ -146,7 +171,6 @@ export default function App() {
   const deleteAdditionalNote = (id: number) => { setAdditionalNotes(prev => prev.filter(note => note.id !== id)); };
 
   const toggleDailyCheckin = (day: string) => { setDailyCheckins(prev => ({ ...prev, [day]: !prev[day] })); };
-  const handleDownloadPDF = () => { /* ... PDF logic remains the same ... */ };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -157,11 +181,9 @@ export default function App() {
         isDownloading={isDownloading} 
         onReset={handleReset}
       />
-      <main id="planner-content" className="pt-20"> {/* Increased padding-top for header */}
+      <main id="planner-content" className="pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           
-          {/* UPDATED: This title section has been removed */}
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <Card><CardHeader><CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" style={{color: '#8F1F57'}} />Weekly Priorities</CardTitle><CardDescription>Key initiatives and goals for this week</CardDescription></CardHeader><CardContent><Textarea placeholder="List your top 3-5 priorities for the week..." value={weeklyPriorities} onChange={(e) => setWeeklyPriorities(e.target.value)} className="min-h-32"/></CardContent></Card>
             <Card><CardHeader><CardTitle className="flex items-center gap-2"><FileText className="w-5 h-5" style={{color: '#8F1F57'}} />Weekly Notes</CardTitle><CardDescription>Important context, decisions, or observations</CardDescription></CardHeader><CardContent><Textarea placeholder="Note any important context, upcoming decisions, or observations..." value={weeklyNotes} onChange={(e) => setWeeklyNotes(e.target.value)} className="min-h-32"/></CardContent></Card>
