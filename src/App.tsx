@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 
 import jsPDF from 'jspdf';
 
-import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
+// UPDATED: Removed RotateCcw from this import line
+import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp } from "lucide-react";
 
 // All interfaces and initial data remain the same...
 interface TodoItem { id: number; text: string; completed: boolean; }
@@ -30,7 +31,7 @@ export default function App() {
   const [currentWeek, setCurrentWeek] = useState(new Date());
   const [isDownloading, setIsDownloading] = useState(false);
   
-  // All state management remains the same...
+  // --- STATE MANAGEMENT ---
   const [weeklyTasks, setWeeklyTasks] = useLocalStorage<{ [key: string]: TodoItem[] }>('weeklyTasks_v3', initialWeeklyTasks);
   const [newTaskTexts, setNewTaskTexts] = useState<{ [key: string]: string }>({});
   const [problemBlocks, setProblemBlocks] = useLocalStorage<ProblemBlock[]>('problemBlocks_v2', initialProblemBlock);
@@ -43,34 +44,59 @@ export default function App() {
   const [weeklyNotes, setWeeklyNotes] = useLocalStorage<string>("weeklyNotes_v1", "");
 
   useEffect(() => {
-    // ... useEffect logic remains the same ...
+    const newCheckins = { ...dailyCheckins };
+    const newCollapsed = { ...collapsedDays };
+    let changed = false;
+    weekDays.forEach(day => {
+      const tasksForDay = weeklyTasks[day];
+      const allTasksCompleted = tasksForDay && tasksForDay.length > 0 && tasksForDay.every(task => task.completed);
+      if (newCheckins[day] !== allTasksCompleted) {
+        newCheckins[day] = allTasksCompleted;
+        if (allTasksCompleted) { newCollapsed[day] = true; }
+        changed = true;
+      }
+    });
+    if (changed) {
+      setDailyCheckins(newCheckins);
+      setCollapsedDays(newCollapsed);
+    }
   }, [weeklyTasks, dailyCheckins, collapsedDays, setDailyCheckins, setCollapsedDays]);
 
-  // --- FINALIZED PDF EXPORT LOGIC ---
+  // --- HANDLER FUNCTIONS ---
+  const handleReset = () => {
+    if (window.confirm("Are you sure you want to reset the entire planner? All your current data will be lost.")) {
+      setWeeklyTasks(initialWeeklyTasks);
+      setNewTaskTexts({});
+      setProblemBlocks(initialProblemBlock);
+      setCommunicationTodos(initialCommunicationTasks);
+      setNewCommunicationTaskText("");
+      setAdditionalNotes(initialAdditionalNotes);
+      setDailyCheckins({});
+      setCollapsedDays({});
+      setWeeklyPriorities("");
+      setWeeklyNotes("");
+    }
+  };
+
   const handleDownloadPDF = () => {
     setIsDownloading(true);
-
     try {
       const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
       let y = 15;
       const pageHeight = doc.internal.pageSize.height;
       const margin = 15;
       const maxWidth = doc.internal.pageSize.width - margin * 2;
-
       const addPageIfNeeded = (spaceNeeded: number) => {
         if (y + spaceNeeded > pageHeight - margin) {
           doc.addPage();
           y = margin;
         }
       };
-
-      // UPDATED: Using Helvetica as the standard sans-serif font
       doc.setFont("helvetica", "bold");
       doc.setFontSize(22);
       doc.setTextColor("#8F1F57");
       doc.text("Ops Weekly Planner", margin, y);
       y += 15;
-
       const addSection = (title: string, content: string) => {
           addPageIfNeeded(20);
           doc.setFont("helvetica", "bold");
@@ -85,14 +111,10 @@ export default function App() {
           doc.text(splitContent, margin, y);
           y += splitContent.length * 5 + 8;
       };
-      
       addSection("Weekly Priorities", weeklyPriorities);
       addSection("Weekly Notes", weeklyNotes);
-
-      // UPDATED: Add space after the line
       doc.line(margin, y - 4, maxWidth + margin, y - 4);
       y += 5;
-
       addPageIfNeeded(20);
       doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("Daily Check-in", margin, y); y += 8;
       weekDays.forEach(day => {
@@ -121,10 +143,8 @@ export default function App() {
           }
           y += 4;
       });
-
       doc.line(margin, y - 4, maxWidth + margin, y - 4);
       y += 5;
-
       addPageIfNeeded(20);
       doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("Problem Solving", margin, y); y += 8;
       problemBlocks.forEach((block, index) => {
@@ -144,10 +164,8 @@ export default function App() {
           });
           y += 5;
       });
-
       doc.line(margin, y - 4, maxWidth + margin, y - 4);
       y += 5;
-
       addPageIfNeeded(20);
       doc.setFont("helvetica", "bold"); doc.setFontSize(16); doc.text("Communication", margin, y); y += 8;
       doc.setFont("helvetica", "normal"); doc.setFontSize(11);
@@ -173,7 +191,6 @@ export default function App() {
               y += noteLines.length * 5;
           }
       });
-
       doc.save(`weekly-ops-planner-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (error) {
         console.error("Error generating PDF:", error);
@@ -182,8 +199,6 @@ export default function App() {
     }
   };
 
-  // --- ALL OTHER HANDLER FUNCTIONS AND JSX REMAIN THE SAME ---
-  const handleReset = () => { if (window.confirm("Are you sure you want to reset the entire planner? All your current data will be lost.")) { setWeeklyTasks(initialWeeklyTasks); setNewTaskTexts({}); setProblemBlocks(initialProblemBlock); setCommunicationTodos(initialCommunicationTasks); setNewCommunicationTaskText(""); setAdditionalNotes(initialAdditionalNotes); setDailyCheckins({}); setCollapsedDays({}); setWeeklyPriorities(""); setWeeklyNotes(""); } };
   const toggleDayCollapse = (day: string) => { setCollapsedDays(prev => ({ ...prev, [day]: !prev[day] })); };
   const handleNewTaskTextChange = (day: string, text: string) => { setNewTaskTexts(prev => ({ ...prev, [day]: text })); };
   const handleAddTask = (day: string) => { const text = newTaskTexts[day] || ""; if (text.trim() === "") return; setWeeklyTasks(prev => ({ ...prev, [day]: [...(prev[day] || []), { id: Date.now(), text, completed: false }] })); setNewTaskTexts(prev => ({ ...prev, [day]: "" })); };
@@ -203,13 +218,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header 
-        currentWeek={currentWeek} 
-        setCurrentWeek={setCurrentWeek} 
-        onDownloadPDF={handleDownloadPDF}
-        isDownloading={isDownloading} 
-        onReset={handleReset}
-      />
+      <Header currentWeek={currentWeek} setCurrentWeek={setCurrentWeek} onDownloadPDF={handleDownloadPDF} isDownloading={isDownloading} onReset={handleReset}/>
       <main id="planner-content" className="pt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
