@@ -1,0 +1,26 @@
+name = "ops-planner"
+main = "worker/index.ts"
+compatibility_date = "2025-07-26"
+compatibility_flags = ["nodejs_compat"]
+
+[build]
+command = "npm run build"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+[observability]
+enabled = true
+
+# Environment variables (add your own as needed)
+# [vars]
+# MY_VARIABLE = "production_value"
+
+# For development
+[env.development]
+name = "ops-planner-dev"
+
+# For production
+[env.production]
+name = "ops-planner"
