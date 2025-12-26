@@ -3,6 +3,9 @@ main = "worker/index.ts"
 compatibility_date = "2025-07-26"
 compatibility_flags = ["nodejs_compat"]
 
+[ai]
+binding = "AI"
+
 [build]
 command = "npm run build"
 

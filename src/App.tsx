@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { AICommTemplateGenerator } from "@/components/AICommTemplateGenerator";
 
 import jsPDF from 'jspdf';
 
 // UPDATED: Removed RotateCcw from this import line
-import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp, Sparkles } from "lucide-react";
 
 // All interfaces and initial data remain the same...
 interface TodoItem { id: number; text: string; completed: boolean; }
@@ -42,6 +43,7 @@ export default function App() {
   const [collapsedDays, setCollapsedDays] = useLocalStorage<{[key: string]: boolean}>('collapsedDays_v1', {});
   const [weeklyPriorities, setWeeklyPriorities] = useLocalStorage<string>("weeklyPriorities_v1", "");
   const [weeklyNotes, setWeeklyNotes] = useLocalStorage<string>("weeklyNotes_v1", "");
+  const [aiTemplateTask, setAiTemplateTask] = useState<string | null>(null);
 
   useEffect(() => {
     const newCheckins = { ...dailyCheckins };
@@ -248,7 +250,7 @@ export default function App() {
                 <CardHeader><CardTitle className="flex items-center gap-2"><MessageSquare className="w-5 h-5" style={{color: '#8F1F57'}} />Communication</CardTitle><CardDescription>Weekly communication practices</CardDescription></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    {communicationTodos.map(todo => (<div key={todo.id} className="flex items-center space-x-2"><Checkbox id={`comm-todo-${todo.id}`} checked={todo.completed} onCheckedChange={() => handleToggleCommunicationTodo(todo.id)}/><Label htmlFor={`comm-todo-${todo.id}`} className={`text-sm flex-grow ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{todo.text}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleDeleteCommunicationTodo(todo.id)}><XCircle className="h-4 w-4 text-gray-400 hover:text-red-500" /></Button></div>))}
+                    {communicationTodos.map(todo => (<div key={todo.id} className="flex items-center space-x-2"><Checkbox id={`comm-todo-${todo.id}`} checked={todo.completed} onCheckedChange={() => handleToggleCommunicationTodo(todo.id)}/><Label htmlFor={`comm-todo-${todo.id}`} className={`text-sm flex-grow ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{todo.text}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => setAiTemplateTask(todo.text)} title="AI Assist"><Sparkles className="h-4 w-4" style={{color: '#8F1F57'}} /></Button><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleDeleteCommunicationTodo(todo.id)}><XCircle className="h-4 w-4 text-gray-400 hover:text-red-500" /></Button></div>))}
                     <div className="flex items-center space-x-2 pt-2 print-hide"><Input placeholder="Add new communication task..." value={newCommunicationTaskText} onChange={(e) => setNewCommunicationTaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddCommunicationTodo()}/><Button onClick={handleAddCommunicationTodo} size="sm">Add</Button></div>
                   </div>
                   <div className="mt-6 space-y-3 border-t pt-4">
@@ -265,6 +267,12 @@ export default function App() {
             </div>
         </div>
       </main>
+      {aiTemplateTask && (
+        <AICommTemplateGenerator 
+          taskText={aiTemplateTask} 
+          onClose={() => setAiTemplateTask(null)} 
+        />
+      )}
     </div>
   );
 }

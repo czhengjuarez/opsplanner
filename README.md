@@ -1,69 +1,190 @@
-# React + TypeScript + Vite
+# Ops Weekly Planner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, AI-powered weekly planning tool for DesignOps professionals, built with React, TypeScript, and deployed on Cloudflare Workers.
 
-Currently, two official plugins are available:
+## 🌟 Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Core Planning Tools
+- **Weekly Priorities & Notes** - Set and track your top initiatives for the week
+- **Daily Check-ins** - Monday through Friday task management with completion tracking
+- **Problem Solving Framework** - Document issues with 3 solution ideas each
+- **Communication Tracker** - Manage weekly communication tasks and practices
+- **PDF Export** - Download your entire weekly plan as a formatted PDF
 
-## Expanding the ESLint configuration
+### 🤖 AI-Powered Communication Templates
+Generate professional communication templates instantly using Cloudflare Workers AI:
+- Click the sparkle ✨ icon next to any communication task
+- Add optional context to customize the template
+- View templates in **Formatted** (rich text) or **Markdown** mode
+- **Dual Copy Options**:
+  - **Copy Plain Text** - Clean text for any platform
+  - **Copy Rich Text** - HTML formatting for email clients (Gmail, Outlook, Slack)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Data Persistence
+- All data stored locally in browser (localStorage)
+- No server-side storage - your data stays private
+- Automatic save on every change
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🚀 Live Demo
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+**Production URL**: [https://ops-planner.coscient.workers.dev](https://ops-planner.coscient.workers.dev)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## 🛠️ Tech Stack
+
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS + shadcn/ui components
+- **Icons**: Lucide React
+- **PDF Generation**: jsPDF
+- **Markdown Rendering**: react-markdown
+- **Backend**: Cloudflare Workers
+- **AI**: Cloudflare Workers AI (Llama 3.1 8B)
+- **Deployment**: Cloudflare Workers with Assets
+
+## 📦 Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/czhengjuarez/opsplanner.git
+cd opsplanner
+
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## 🏃 Development
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Local Development Server
 
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+# Start Cloudflare Workers dev server with hot reload
+npm run workers:dev
 ```
+
+The app will be available at `http://localhost:8787`
+
+### Standard Vite Dev Server (without AI features)
+
+```bash
+npm run dev
+```
+
+## 🚢 Deployment
+
+### Deploy to Cloudflare Workers
+
+```bash
+# Build and deploy to production
+npm run workers:deploy
+
+# Deploy to specific environment
+npm run workers:deploy -- --env production
+```
+
+### Configuration
+
+The `wrangler.toml` file contains the Cloudflare Workers configuration:
+
+```toml
+name = "ops-planner"
+main = "worker/index.ts"
+compatibility_date = "2025-07-26"
+
+[ai]
+binding = "AI"  # Enables Workers AI
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+```
+
+## 📝 Available Scripts
+
+- `npm run dev` - Start Vite dev server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build locally
+- `npm run workers:dev` - Start Workers dev server with AI
+- `npm run workers:deploy` - Deploy to Cloudflare Workers
+- `npm run workers:build` - Build for Workers deployment
+
+## 🔑 Environment Setup
+
+No environment variables required! The app uses:
+- Cloudflare Workers AI (requires Cloudflare account)
+- Browser localStorage for data persistence
+
+## 🏗️ Project Structure
+
+```
+opsplanner/
+├── src/
+│   ├── components/
+│   │   ├── ui/              # shadcn/ui components
+│   │   ├── Header.tsx       # App header with week navigation
+│   │   └── AICommTemplateGenerator.tsx  # AI template modal
+│   ├── hooks/
+│   │   └── useLocalStorage.ts  # localStorage hook
+│   ├── App.tsx              # Main application
+│   └── main.tsx             # Entry point
+├── worker/
+│   └── index.ts             # Cloudflare Workers entry point
+├── dist/                    # Build output
+├── wrangler.toml            # Workers configuration
+└── package.json
+```
+
+## 🎨 Key Components
+
+### AICommTemplateGenerator
+AI-powered modal for generating communication templates with:
+- Context input for customization
+- Formatted/Markdown view toggle
+- Dual copy functionality (plain text & rich HTML)
+- Markdown to HTML conversion
+
+### Communication Section
+Weekly communication task tracker with:
+- Checkbox completion tracking
+- AI assist button (sparkle icon)
+- Additional notes section
+- Custom task creation
+
+## ⚠️ Important Notes
+
+### Workers AI Usage
+- Workers AI incurs usage charges even in local development
+- Charges apply to your Cloudflare account
+- Monitor usage in Cloudflare dashboard
+
+### Browser Compatibility
+- Rich text copy requires modern browsers with ClipboardItem API
+- Falls back to plain text copy if API unavailable
+- Tested on Chrome, Firefox, Safari, Edge
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is open source and available under the MIT License.
+
+## 🙏 Acknowledgments
+
+- Built with [shadcn/ui](https://ui.shadcn.com/)
+- Powered by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/)
+- Icons by [Lucide](https://lucide.dev/)
+
+## 📧 Contact
+
+For questions or feedback, please open an issue on GitHub.
+
+---
+
+**Made with ❤️ for DesignOps professionals**
