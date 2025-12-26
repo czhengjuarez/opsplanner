@@ -1,6 +1,44 @@
-# React + TypeScript + Vite
+# Ops Weekly Planner
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A weekly operations planning tool built with React, TypeScript, and Vite, deployed on Cloudflare Workers.
+
+## Features
+
+- **Weekly Planning** - Organize tasks by day with priorities and notes
+- **Problem Solving** - Document issues with multiple solution approaches
+- **Communication Tracking** - Manage weekly communication tasks
+- **Jira Integration** - Create Jira tickets directly from the planner or via RespectTables commands
+- **PDF Export** - Download your weekly plan as a PDF
+- **Local Storage** - All data persists in your browser
+
+## Quick Start
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Or run with Cloudflare Workers
+npm run workers:dev
+```
+
+## Jira Integration Setup
+
+To enable direct Jira ticket creation, see [JIRA_SETUP.md](./JIRA_SETUP.md) for detailed configuration instructions.
+
+## Deployment
+
+Deploy to Cloudflare Workers:
+
+```bash
+npm run workers:deploy
+```
+
+---
+
+## Development Notes
 
 Currently, two official plugins are available:
 

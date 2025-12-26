@@ -1,0 +1,14 @@
+# Jira Integration Configuration
+# Copy this file to .dev.vars and fill in your actual values
+# DO NOT commit .dev.vars to version control!
+
+# Jira Domain (without https://)
+JIRA_DOMAIN=jira.yourcompany.com
+
+# For Jira behind Cloudflare Access (use these):
+CF_ACCESS_CLIENT_ID=your_client_id.access
+CF_ACCESS_CLIENT_SECRET=your_client_secret
+
+# For standard Jira authentication (use these instead):
+# JIRA_EMAIL=your.email@company.com
+# JIRA_API_TOKEN=your_api_token_here

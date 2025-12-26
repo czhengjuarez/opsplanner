@@ -14,6 +14,10 @@ binding = "ASSETS"
 enabled = true
 
 # Environment variables (add your own as needed)
+# Jira Integration - Set these as secrets for production:
+# wrangler secret put JIRA_DOMAIN
+# wrangler secret put JIRA_EMAIL  
+# wrangler secret put JIRA_API_TOKEN
 # [vars]
 # MY_VARIABLE = "production_value"
 

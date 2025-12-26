@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { Header } from "@/components/Header";
+import { JiraTicketCreator } from "@/components/JiraTicketCreator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import jsPDF from 'jspdf';
 
 // UPDATED: Removed RotateCcw from this import line
-import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { Calendar, MessageSquare, Lightbulb, Target, FileText, XCircle, PlusCircle, ChevronDown, ChevronUp, Ticket, Check } from "lucide-react";
 
 // All interfaces and initial data remain the same...
 interface TodoItem { id: number; text: string; completed: boolean; }
@@ -42,6 +43,7 @@ export default function App() {
   const [collapsedDays, setCollapsedDays] = useLocalStorage<{[key: string]: boolean}>('collapsedDays_v1', {});
   const [weeklyPriorities, setWeeklyPriorities] = useLocalStorage<string>("weeklyPriorities_v1", "");
   const [weeklyNotes, setWeeklyNotes] = useLocalStorage<string>("weeklyNotes_v1", "");
+  const [copiedTaskId, setCopiedTaskId] = useState<number | null>(null);
 
   useEffect(() => {
     const newCheckins = { ...dailyCheckins };
@@ -215,6 +217,16 @@ export default function App() {
   const updateAdditionalNote = (id: number, text: string) => { setAdditionalNotes(prev => prev.map(note => note.id === id ? { ...note, text } : note)); };
   const deleteAdditionalNote = (id: number) => { setAdditionalNotes(prev => prev.filter(note => note.id !== id)); };
   const toggleDailyCheckin = (day: string) => { setDailyCheckins(prev => ({ ...prev, [day]: !prev[day] })); };
+  const handleCreateJiraFromTask = async (taskText: string, taskId: number) => {
+    const jiraCommand = `@RespectTables adhoc DES ${taskText}`;
+    try {
+      await navigator.clipboard.writeText(jiraCommand);
+      setCopiedTaskId(taskId);
+      setTimeout(() => setCopiedTaskId(null), 2000);
+    } catch (err) {
+      console.error('Failed to copy Jira command:', err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -225,12 +237,15 @@ export default function App() {
               <Card><CardHeader><CardTitle className="flex items-center gap-2"><Target className="w-5 h-5" style={{color: '#8F1F57'}} />Weekly Priorities</CardTitle><CardDescription>Key initiatives and goals for this week</CardDescription></CardHeader><CardContent><Textarea placeholder="List your top 3-5 priorities for the week..." value={weeklyPriorities} onChange={(e) => setWeeklyPriorities(e.target.value)} className="min-h-32"/></CardContent></Card>
               <Card><CardHeader><CardTitle className="flex items-center gap-2"><FileText className="w-5 h-5" style={{color: '#8F1F57'}} />Weekly Notes</CardTitle><CardDescription>Important context, decisions, or observations</CardDescription></CardHeader><CardContent><Textarea placeholder="Note any important context, upcoming decisions, or observations..." value={weeklyNotes} onChange={(e) => setWeeklyNotes(e.target.value)} className="min-h-32"/></CardContent></Card>
             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+              <JiraTicketCreator />
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
               <Card>
                 <CardHeader><CardTitle className="flex items-center gap-2"><Calendar className="w-5 h-5" style={{color: '#8F1F57'}} />Daily Check-in</CardTitle><CardDescription>Weekly check-in progress</CardDescription></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between mb-4"><span className="text-sm font-medium">Weekly Progress</span><span className="text-sm text-gray-500">{Object.values(dailyCheckins).filter(Boolean).length}/{weekDays.length} days</span></div>
-                  <div className="space-y-4">{weekDays.map((day) => (<div key={day} className="border rounded-lg p-4 space-y-3"><div className="flex items-center"><Checkbox id={`check-${day}`} checked={dailyCheckins[day] || false} onCheckedChange={() => toggleDailyCheckin(day)}/><Label htmlFor={`check-${day}`} className={`text-sm font-medium ml-3 flex-grow ${dailyCheckins[day] ? 'line-through text-gray-500' : 'text-gray-900'}`}>{day}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => toggleDayCollapse(day)}>{collapsedDays[day] ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}</Button></div>{!collapsedDays[day] && (<div className="ml-6 space-y-3 pt-2">{(weeklyTasks[day] || []).map(task => (<div key={task.id} className="flex items-center space-x-2"><Checkbox id={`task-${day}-${task.id}`} checked={task.completed} onCheckedChange={() => handleToggleTask(day, task.id)}/><Label htmlFor={`task-${day}-${task.id}`} className={`text-sm flex-grow ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{task.text}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleDeleteTask(day, task.id)}><XCircle className="h-4 w-4 text-gray-400 hover:text-red-500" /></Button></div>))}<div className="flex items-center space-x-2 pt-2 print-hide"><Input placeholder="Add new task..." value={newTaskTexts[day] || ""} onChange={(e) => handleNewTaskTextChange(day, e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTask(day)}/><Button onClick={() => handleAddTask(day)} size="sm">Add</Button></div></div>)}</div>))}</div>
+                  <div className="space-y-4">{weekDays.map((day) => (<div key={day} className="border rounded-lg p-4 space-y-3"><div className="flex items-center"><Checkbox id={`check-${day}`} checked={dailyCheckins[day] || false} onCheckedChange={() => toggleDailyCheckin(day)}/><Label htmlFor={`check-${day}`} className={`text-sm font-medium ml-3 flex-grow ${dailyCheckins[day] ? 'line-through text-gray-500' : 'text-gray-900'}`}>{day}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => toggleDayCollapse(day)}>{collapsedDays[day] ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}</Button></div>{!collapsedDays[day] && (<div className="ml-6 space-y-3 pt-2">{(weeklyTasks[day] || []).map(task => (<div key={task.id} className="flex items-center space-x-2"><Checkbox id={`task-${day}-${task.id}`} checked={task.completed} onCheckedChange={() => handleToggleTask(day, task.id)}/><Label htmlFor={`task-${day}-${task.id}`} className={`text-sm flex-grow ${task.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{task.text}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleCreateJiraFromTask(task.text, task.id)} title="Create Jira ticket">{copiedTaskId === task.id ? <Check className="h-4 w-4 text-green-500" /> : <Ticket className="h-4 w-4 text-[#8F1F57] hover:text-[#6B1543]" />}</Button><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleDeleteTask(day, task.id)}><XCircle className="h-4 w-4 text-gray-400 hover:text-red-500" /></Button></div>))}<div className="flex items-center space-x-2 pt-2 print-hide"><Input placeholder="Add new task..." value={newTaskTexts[day] || ""} onChange={(e) => handleNewTaskTextChange(day, e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTask(day)}/><Button onClick={() => handleAddTask(day)} size="sm">Add</Button></div></div>)}</div>))}</div>
                 </CardContent>
               </Card>
               <Card>
@@ -248,7 +263,7 @@ export default function App() {
                 <CardHeader><CardTitle className="flex items-center gap-2"><MessageSquare className="w-5 h-5" style={{color: '#8F1F57'}} />Communication</CardTitle><CardDescription>Weekly communication practices</CardDescription></CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-3">
-                    {communicationTodos.map(todo => (<div key={todo.id} className="flex items-center space-x-2"><Checkbox id={`comm-todo-${todo.id}`} checked={todo.completed} onCheckedChange={() => handleToggleCommunicationTodo(todo.id)}/><Label htmlFor={`comm-todo-${todo.id}`} className={`text-sm flex-grow ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{todo.text}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleDeleteCommunicationTodo(todo.id)}><XCircle className="h-4 w-4 text-gray-400 hover:text-red-500" /></Button></div>))}
+                    {communicationTodos.map(todo => (<div key={todo.id} className="flex items-center space-x-2"><Checkbox id={`comm-todo-${todo.id}`} checked={todo.completed} onCheckedChange={() => handleToggleCommunicationTodo(todo.id)}/><Label htmlFor={`comm-todo-${todo.id}`} className={`text-sm flex-grow ${todo.completed ? 'line-through text-gray-500' : 'text-gray-800'}`}>{todo.text}</Label><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleCreateJiraFromTask(todo.text, todo.id)} title="Create Jira ticket">{copiedTaskId === todo.id ? <Check className="h-4 w-4 text-green-500" /> : <Ticket className="h-4 w-4 text-[#8F1F57] hover:text-[#6B1543]" />}</Button><Button variant="ghost" size="icon" className="h-6 w-6 print-hide" onClick={() => handleDeleteCommunicationTodo(todo.id)}><XCircle className="h-4 w-4 text-gray-400 hover:text-red-500" /></Button></div>))}
                     <div className="flex items-center space-x-2 pt-2 print-hide"><Input placeholder="Add new communication task..." value={newCommunicationTaskText} onChange={(e) => setNewCommunicationTaskText(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddCommunicationTodo()}/><Button onClick={handleAddCommunicationTodo} size="sm">Add</Button></div>
                   </div>
                   <div className="mt-6 space-y-3 border-t pt-4">
